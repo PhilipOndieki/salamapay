@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Helper function to check if user owns the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      // Users can read and write their own data
+      allow read, write: if isOwner(userId);
+      // Admins can read all user data
+      allow read: if isAdmin();
+      // Allow creation during signup
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Issues collection
+    match /issues/{issueId} {
+      // Interns can create issues
+      allow create: if isAuthenticated() && 
+                      request.resource.data.internId == request.auth.uid;
+      
+      // Interns can read their own issues
+      allow read: if isAuthenticated() && 
+                    resource.data.internId == request.auth.uid;
+      
+      // Admins can read and update all issues
+      allow read, update: if isAdmin();
+      
+      // Nobody can delete issues (maintain audit trail)
+      allow delete: if false;
+    }
+    
+    // Audit logs collection (admin only)
+    match /auditLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

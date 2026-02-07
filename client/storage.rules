@@ -1,0 +1,34 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check file size (5MB limit)
+    function isValidSize() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+    
+    // Helper function to check if file is an image
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    // Issues attachments
+    match /issues/{issueId}/attachments/{fileName} {
+      // Allow authenticated users to upload images under 5MB
+      allow write: if isAuthenticated() && isValidSize() && isImage();
+      
+      // Allow authenticated users to read
+      allow read: if isAuthenticated();
+    }
+    
+    // Deny access to all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

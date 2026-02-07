@@ -1,0 +1,152 @@
+import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useIssues } from '../hooks/useIssues';
+import { useAdminStats } from '../hooks/useAdminStats';
+import Navbar from '../components/common/Navbar';
+import Loading from '../components/common/Loading';
+import StatsCard from '../components/admin/StatsCard';
+import FilterPanel from '../components/admin/FilterPanel';
+import IssuesTable from '../components/admin/IssuesTable';
+import IssueDetailModal from '../components/admin/IssueDetailModal';
+
+const AdminDashboard = () => {
+  const { userData } = useAuth();
+  const [filters, setFilters] = useState({ status: null, issueType: null, bankName: null });
+  const { issues, loading } = useIssues(filters);
+  const { stats, loading: statsLoading } = useAdminStats();
+  const [selectedIssue, setSelectedIssue] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleViewIssue = (issue) => {
+    setSelectedIssue(issue);
+    setIsModalOpen(true);
+  };
+
+  const handleResolveIssue = (issue) => {
+    setSelectedIssue(issue);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedIssue(null);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-dark-800">Admin Dashboard</h1>
+          <p className="mt-2 text-gray-600">
+            Manage and resolve payment issues
+          </p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {statsLoading ? (
+            <div className="col-span-full">
+              <Loading text="Loading statistics..." />
+            </div>
+          ) : stats ? (
+            <>
+              <StatsCard
+                title="Total Pending"
+                value={stats.totalPending}
+                color="warning"
+                icon={
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                }
+              />
+              <StatsCard
+                title="In Progress"
+                value={stats.totalInProgress}
+                color="primary"
+                icon={
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                }
+              />
+              <StatsCard
+                title="Resolved Today"
+                value={stats.resolvedToday}
+                color="success"
+                icon={
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                }
+              />
+              <StatsCard
+                title="Total Resolved"
+                value={stats.totalResolved}
+                color="success"
+                icon={
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                }
+              />
+            </>
+          ) : null}
+        </div>
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Filters Sidebar */}
+          <div className="lg:col-span-1">
+            <FilterPanel filters={filters} onFilterChange={setFilters} />
+
+            {/* Bank Distribution */}
+            {stats && stats.byBank && Object.keys(stats.byBank).length > 0 && (
+              <div className="mt-6 bg-white rounded-lg shadow-card p-6">
+                <h3 className="text-lg font-semibold text-dark-800 mb-4">By Bank</h3>
+                <div className="space-y-2">
+                  {Object.entries(stats.byBank).map(([bank, count]) => (
+                    <div key={bank} className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">{bank}</span>
+                      <span className="text-sm font-semibold text-dark-800">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Issues Table */}
+          <div className="lg:col-span-3">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-dark-800">
+                Issues {!loading && `(${issues.length})`}
+              </h2>
+            </div>
+            
+            <IssuesTable
+              issues={issues}
+              loading={loading}
+              onViewIssue={handleViewIssue}
+              onResolveIssue={handleResolveIssue}
+            />
+          </div>
+        </div>
+      </main>
+
+      {/* Issue Detail Modal */}
+      <IssueDetailModal
+        issue={selectedIssue}
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        adminId={userData?.uid}
+        onSuccess={handleModalClose}
+      />
+    </div>
+  );
+};
+
+export default AdminDashboard;
