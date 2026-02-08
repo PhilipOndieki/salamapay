@@ -5,9 +5,9 @@ import { useAdminStats } from '../hooks/useAdminStats';
 import Navbar from '../components/common/Navbar';
 import Loading from '../components/common/Loading';
 import StatsCard from '../components/admin/StatsCard';
-import FilterPanel from '../components/admin/FilterPanel';
-import IssuesTable from '../components/admin/IssuesTable';
-import IssueDetailModal from '../components/admin/IssueDetailModal';
+import FilterPanel from '../components/admin/FilterPanel.jsx';
+import IssuesTable from '../components/admin/IssuesTable.jsx';
+import IssueDetailModal from '../components/admin/IssueDetailModal.jsx';
 
 const AdminDashboard = () => {
   const { userData } = useAuth();

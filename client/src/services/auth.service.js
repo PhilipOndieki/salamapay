@@ -1,6 +1,8 @@
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
   signOut,
   sendPasswordResetEmail,
   updateProfile,
@@ -9,7 +11,55 @@ import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { ROLES } from '../utils/constants';
 
-// Sign up new user
+// Initialize Google Provider
+const googleProvider = new GoogleAuthProvider();
+
+// Sign in with Google
+export const signInWithGoogle = async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+
+    // Check if user exists in Firestore
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+
+    if (!userDoc.exists()) {
+      // Create new user document if doesn't exist
+      await setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid,
+        email: user.email,
+        name: user.displayName,
+        phone: user.phoneNumber || '',
+        role: ROLES.INTERN,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    }
+
+    return { success: true, user, isNewUser: !userDoc.exists() };
+  } catch (error) {
+    console.error('Sign up error:', error);
+  
+    // User-friendly error messages
+    let errorMessage = 'Failed to create account';
+  
+    if (error.code === 'auth/email-already-in-use') {
+      errorMessage = 'This email is already registered. Please sign in or use a different email address.';
+    } else if (error.code === 'auth/weak-password') {
+      errorMessage = 'Password is too weak. Please create a stronger password.';
+    } else if (error.code === 'auth/invalid-email') {
+      errorMessage = 'Invalid email address. Please enter a valid email.';
+    } else if (error.code === 'auth/operation-not-allowed') {
+      errorMessage = 'Email/password accounts are not enabled. Please contact support.';
+    } else if (error.code === 'auth/network-request-failed') {
+      errorMessage = 'Network error. Please check your internet connection and try again.';
+    }
+    
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Sign up new user (existing function - keep as is)
 export const signUpUser = async (userData) => {
   try {
     const { email, password, name, phone, role = ROLES.INTERN } = userData;

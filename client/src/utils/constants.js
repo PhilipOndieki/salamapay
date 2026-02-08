@@ -60,22 +60,24 @@ export const BANKS = [
   { value: 'mpesa', label: 'M-Pesa', accountLength: 10 },
   { value: 'absa', label: 'Absa Bank', accountLength: 13 },
   { value: 'dtb', label: 'Diamond Trust Bank (DTB)', accountLength: 13 },
+  { value: 'im', label: 'I & M Bank', accountLength: 13 },
   { value: 'standard_chartered', label: 'Standard Chartered', accountLength: 13 },
   { value: 'other', label: 'Other', accountLength: null }
 ];
 
 // Bank branches (sample - you'd have a full list)
 export const BANK_BRANCHES = {
-  kcb: ['Westlands', 'CBD', 'Kilimani', 'Karen', 'Thika Road', 'Mombasa Road'],
-  equity: ['Upper Hill', 'Westlands', 'CBD', 'Thika', 'Nakuru', 'Kisumu'],
-  coop: ['Cooperative House', 'Westlands', 'CBD', 'Karen', 'Ngong Road'],
-  ncba: ['Westlands', 'CBD', 'Upperhill', 'Karen', 'Mombasa Road'],
-  stanbic: ['Chiromo', 'Westlands', 'CBD', 'Village Market'],
+  kcb: ['Westlands', 'CBD', 'Kilimani', 'Karen', 'Thika Road', 'Mombasa Road', 'Other'],
+  equity: ['Upper Hill', 'Westlands', 'CBD', 'Thika', 'Nakuru', 'Kisumu', 'Other'],
+  coop: ['Cooperative House', 'Westlands', 'CBD', 'Karen', 'Ngong Road', 'Other'],
+  ncba: ['Westlands', 'CBD', 'Upperhill', 'Karen', 'Mombasa Road', 'Other'],
+  stanbic: ['Chiromo', 'Westlands', 'CBD', 'Village Market', 'Other'],
   mpesa: ['Mobile Money'],
-  absa: ['Queensway', 'Westlands', 'Thika Road', 'CBD'],
-  dtb: ['Mombasa Road', 'Westlands', 'Kenyatta Avenue'],
-  standard_chartered: ['Chiromo', 'Westlands', 'CBD'],
-  other: ['N/A']
+  absa: ['Queensway', 'Westlands', 'Thika Road', 'CBD', 'Other'],
+  dtb: ['Mombasa Road', 'Westlands', 'Kenyatta Avenue', 'Other'],
+  im: ['Koinange Street', 'Westlands', 'Thika Road', 'Industrial Area', 'Other'],
+  standard_chartered: ['Chiromo', 'Westlands', 'CBD', 'Other'],
+  other: ['Other']
 };
 
 // Routes
