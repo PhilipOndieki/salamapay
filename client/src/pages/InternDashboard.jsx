@@ -8,6 +8,7 @@ import Loading from '../components/common/Loading';
 import BankDetailsCard from '../components/intern/BankDetailsCard';
 import IssueList from '../components/intern/IssueList';
 import EditProfileModal from '../components/intern/EditProfileModal';
+import MessageBanner from '../components/intern/MessageBanner';
 import { ROUTES } from '../utils/constants';
 
 const InternDashboard = () => {
@@ -55,6 +56,9 @@ const InternDashboard = () => {
             Track and manage your payment issues
           </p>
         </div>
+
+        {/* Admin Messages Banner */}
+        <MessageBanner internId={userData.uid} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Issues List */}

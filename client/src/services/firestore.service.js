@@ -308,3 +308,142 @@ export const bulkUpdateIssues = async (issueIds, status, adminId) => {
     return { success: false, error: error.message };
   }
 };
+
+// ===== ADMIN MESSAGES OPERATIONS =====
+// Send message from admin to intern
+export const sendAdminMessage = async (internId, message, adminId, priority = 'normal') => {
+  try {
+    const messageRef = await addDoc(collection(db, 'adminMessages'), {
+      internId,
+      message,
+      adminId,
+      priority, // 'normal', 'high', 'urgent'
+      isRead: false,
+      createdAt: serverTimestamp(),
+    });
+
+    return { success: true, messageId: messageRef.id };
+  } catch (error) {
+    console.error('Send admin message error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Get intern's messages
+export const getInternMessages = async (internId, onlyUnread = false) => {
+  try {
+    let q = query(
+      collection(db, 'adminMessages'),
+      where('internId', '==', internId),
+      orderBy('createdAt', 'desc')
+    );
+
+    if (onlyUnread) {
+      q = query(
+        collection(db, 'adminMessages'),
+        where('internId', '==', internId),
+        where('isRead', '==', false),
+        orderBy('createdAt', 'desc')
+      );
+    }
+
+    const querySnapshot = await getDocs(q);
+    const messages = [];
+    querySnapshot.forEach((doc) => {
+      messages.push({ id: doc.id, ...doc.data() });
+    });
+
+    return { success: true, data: messages };
+  } catch (error) {
+    console.error('Get intern messages error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Mark message as read
+export const markMessageAsRead = async (messageId) => {
+  try {
+    await updateDoc(doc(db, 'adminMessages', messageId), {
+      isRead: true,
+      readAt: serverTimestamp(),
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('Mark message as read error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Mark all messages as read for an intern
+export const markAllMessagesAsRead = async (internId) => {
+  try {
+    const q = query(
+      collection(db, 'adminMessages'),
+      where('internId', '==', internId),
+      where('isRead', '==', false)
+    );
+
+    const querySnapshot = await getDocs(q);
+    const updates = [];
+
+    querySnapshot.forEach((doc) => {
+      updates.push(
+        updateDoc(doc.ref, {
+          isRead: true,
+          readAt: serverTimestamp(),
+        })
+      );
+    });
+
+    await Promise.all(updates);
+    return { success: true };
+  } catch (error) {
+    console.error('Mark all messages as read error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Delete message (admin only)
+export const deleteAdminMessage = async (messageId) => {
+  try {
+    await deleteDoc(doc(db, 'adminMessages', messageId));
+    return { success: true };
+  } catch (error) {
+    console.error('Delete admin message error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Real-time listener for intern messages
+export const subscribeToInternMessages = (internId, callback) => {
+  const q = query(
+    collection(db, 'adminMessages'),
+    where('internId', '==', internId),
+    orderBy('createdAt', 'desc')
+  );
+
+  return onSnapshot(q, (snapshot) => {
+    const messages = [];
+    snapshot.forEach((doc) => {
+      messages.push({ id: doc.id, ...doc.data() });
+    });
+    callback(messages);
+  });
+};
+
+// Get unread message count
+export const getUnreadMessageCount = async (internId) => {
+  try {
+    const q = query(
+      collection(db, 'adminMessages'),
+      where('internId', '==', internId),
+      where('isRead', '==', false)
+    );
+
+    const querySnapshot = await getDocs(q);
+    return { success: true, count: querySnapshot.size };
+  } catch (error) {
+    console.error('Get unread count error:', error);
+    return { success: false, error: error.message };
+  }
+};

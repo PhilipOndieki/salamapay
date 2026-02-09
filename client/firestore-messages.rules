@@ -1,0 +1,15 @@
+    // Admin Messages collection
+    match /adminMessages/{messageId} {
+      // Admins can create, read, update, and delete messages
+      allow create, read, update, delete: if isAdmin();
+      
+      // Interns can only read their own messages and mark them as read
+      allow read: if isAuthenticated() && 
+                    resource.data.internId == request.auth.uid;
+      
+      // Interns can only update the isRead and readAt fields of their own messages
+      allow update: if isAuthenticated() && 
+                      resource.data.internId == request.auth.uid &&
+                      request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['isRead', 'readAt']);
+    }
