@@ -74,8 +74,8 @@ jobs:
         path: client/dist
         retention-days: 7
 
-  deploy-firebase:
-    name: Deploy to Firebase Hosting
+  deploy-vercel:
+    name: Deploy to Vercel
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -97,14 +97,20 @@ jobs:
       working-directory: ./client
       run: npm run build
     
-    - name: Deploy to Firebase Hosting
-      uses: FirebaseExtended/action-hosting-deploy@v0
-      with:
-        repoToken: ${{ secrets.GITHUB_TOKEN }}
-        firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        channelId: live
-        projectId: salamapay-89893
-        entryPoint: ./client
+    - name: Install Vercel CLI
+      run: npm install --global vercel@latest
+    
+    - name: Pull Vercel Environment Information
+      working-directory: ./client
+      run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+    
+    - name: Build Project Artifacts
+      working-directory: ./client
+      run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+    
+    - name: Deploy to Vercel
+      working-directory: ./client
+      run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
       
     - name: Deployment complete
-      run: echo "Production deployment to Firebase Hosting successful!"
+      run: echo "Production deployment to Vercel successful!"
