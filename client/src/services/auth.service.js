@@ -96,7 +96,7 @@ export const signInUser = async (email, password) => {
     return { success: true, user: userCredential.user };
   } catch (error) {
     console.error('Sign in error:', error);
-    let errorMessage = 'Failed to sign in';
+    let errorMessage = 'Incorrect email or password';
     
     if (error.code === 'auth/user-not-found') {
       errorMessage = 'No account found with this email';

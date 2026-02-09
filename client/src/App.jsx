@@ -13,7 +13,11 @@ import AdminDashboard from './pages/AdminDashboard';
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children, allowedRole }) => {
-  const { currentUser, userRole } = useAuth();
+  const { currentUser, userRole, loading} = useAuth();
+//Wait for auth to finish loading
+  if (loading) {
+    return < Loading fullScreen text="Loading..." />;
+  }
 
   if (!currentUser) {
     return <Navigate to={ROUTES.LOGIN} />;
