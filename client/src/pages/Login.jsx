@@ -33,11 +33,19 @@ const Login = () => {
       const result = await signInUser(formData.email, formData.password);
 
       if (result.success) {
-        // Navigate based on role
-        const redirectRoute = userRole === ROLES.ADMIN 
-          ? ROUTES.ADMIN_DASHBOARD 
-          : ROUTES.INTERN_DASHBOARD;
-        navigate(redirectRoute);
+        // Fetch user data to determine role
+        const { getUserData } = await import('../services/auth.service');
+        const userData = await getUserData(result.user.uid);
+        
+        if (userData.success) {
+          const redirectRoute = userData.data.role === ROLES.ADMIN 
+            ? ROUTES.ADMIN_DASHBOARD 
+            : ROUTES.INTERN_DASHBOARD;
+          navigate(redirectRoute);
+        } else {
+          // Fallback to intern dashboard if role fetch fails
+          navigate(ROUTES.INTERN_DASHBOARD);
+        }
       } else {
         setError(result.error);
       }
@@ -47,7 +55,7 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }; 
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

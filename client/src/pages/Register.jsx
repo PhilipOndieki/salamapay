@@ -97,7 +97,7 @@ const Register = () => {
       if (result.success) {
         // Use setTimeout to avoid React state update warning
         setTimeout(() => {
-          navigate(ROUTES.INTERN_DASHBOARD);
+          navigate(ROUTES.LOGIN);
         }, 100);
       } else {
         setError(result.error);

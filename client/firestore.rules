@@ -26,8 +26,10 @@ service cloud.firestore {
       allow read: if isAdmin();
       // Allow creation during signup
       allow create: if isAuthenticated() && request.auth.uid == userId;
+      // Allow authenticated users to query for ID number validation
+      allow list: if isAuthenticated() && request.query.limit <= 1;
     }
-    
+
     // Issues collection
     match /issues/{issueId} {
       // Interns can create issues

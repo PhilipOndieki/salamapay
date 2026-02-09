@@ -17,14 +17,23 @@ import { db } from './firebase';
 import { ISSUE_STATUS } from '../utils/constants';
 
 // ===== USER OPERATIONS =====
-
 // Complete user registration (bank details)
 export const completeUserRegistration = async (uid, bankDetails) => {
   try {
+    // Check if ID number already exists
+    const idCheck = await checkIdNumberExists(bankDetails.idNumber);
+    if (!idCheck.success) {
+      return { success: false, error: idCheck.error };
+    }
+    if (idCheck.exists) {
+      return { success: false, error: 'This ID number is already registered in the system' };
+    }
+
     await updateDoc(doc(db, 'users', uid), {
       bankName: bankDetails.bankName,
       bankBranch: bankDetails.bankBranch,
       accountNumber: bankDetails.accountNumber, // Will be encrypted by Cloud Function
+      idNumber: bankDetails.idNumber,
       updatedAt: serverTimestamp(),
     });
     return { success: true };
@@ -44,6 +53,23 @@ export const getUserProfile = async (uid) => {
     return { success: false, error: 'User not found' };
   } catch (error) {
     console.error('Get user profile error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Check if ID number already exists
+export const checkIdNumberExists = async (idNumber) => {
+  try {
+    const q = query(
+      collection(db, 'users'),
+      where('idNumber', '==', idNumber),
+      limit(1)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    return { success: true, exists: !querySnapshot.empty };
+  } catch (error) {
+    console.error('Check ID number error:', error);
     return { success: false, error: error.message };
   }
 };
