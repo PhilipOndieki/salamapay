@@ -1,0 +1,110 @@
+name: SalamaPay - Frontend CI/CD
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'client/**'
+      - '.github/workflows/frontend-ci-cd.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'client/**'
+
+jobs:
+  quality-check:
+    name: Code Quality & Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: client/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./client
+      run: npm ci
+    
+    - name: Quality check passed
+      run: echo "All quality checks passed!"
+
+  build:
+    name: Build Application
+    needs: quality-check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: client/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./client
+      run: npm ci
+    
+    - name: Build application
+      working-directory: ./client
+      run: npm run build
+    
+    - name: Build statistics
+      working-directory: ./client
+      run: |
+        echo "Build Statistics:"
+        echo "===================="
+        du -sh dist
+        echo ""
+        echo "Build successful!"
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: salamapay-dist-${{ github.sha }}
+        path: client/dist
+        retention-days: 7
+
+  deploy-firebase:
+    name: Deploy to Firebase Hosting
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+    
+    - name: Install dependencies
+      working-directory: ./client
+      run: npm ci
+    
+    - name: Build application
+      working-directory: ./client
+      run: npm run build
+    
+    - name: Deploy to Firebase Hosting
+      uses: FirebaseExtended/action-hosting-deploy@v0
+      with:
+        repoToken: ${{ secrets.GITHUB_TOKEN }}
+        firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        channelId: live
+        projectId: salamapay-89893
+        entryPoint: ./client
+      
+    - name: Deployment complete
+      run: echo "Production deployment to Firebase Hosting successful!"

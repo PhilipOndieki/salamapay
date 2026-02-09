@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react'; 
 import { useAuth } from '../context/AuthContext';
 import { useIssues } from '../hooks/useIssues';
 import Navbar from '../components/common/Navbar';
@@ -18,8 +19,14 @@ const InternDashboard = () => {
   }
 
   // Check if bank details are completed
+  useEffect(() => {
+    if (userData && (!userData.bankName || !userData.accountNumber)) {
+      navigate('/register');
+    }
+  }, [userData, navigate]);
+
+  // Don't render dashboard if bank details are missing
   if (!userData.bankName || !userData.accountNumber) {
-    navigate('/register');
     return null;
   }
 
