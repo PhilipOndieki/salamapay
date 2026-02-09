@@ -1,12 +1,22 @@
 import PropTypes from 'prop-types';
 import Card from '../common/Card';
+import Button from '../common/Button';
 import { maskAccountNumber } from '../../utils/formatters';
 
-const BankDetailsCard = ({ userData }) => {
+const BankDetailsCard = ({ userData, onEdit }) => {
   return (
     <Card>
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-dark-800">Payment Details</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-dark-800">Payment Details</h3>
+          <Button
+            variant="secondary"
+            onClick={onEdit}
+            className="text-sm px-4 py-2"
+          >
+            Edit
+          </Button>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -35,6 +45,11 @@ const BankDetailsCard = ({ userData }) => {
               {maskAccountNumber(userData.accountNumber)}
             </p>
           </div>
+
+          <div className="md:col-span-2">
+            <p className="text-sm text-gray-500">ID Number</p>
+            <p className="font-medium text-dark-800">{userData.idNumber}</p>
+          </div>
         </div>
 
         <div className="pt-4 border-t border-gray-200">
@@ -52,6 +67,7 @@ const BankDetailsCard = ({ userData }) => {
 
 BankDetailsCard.propTypes = {
   userData: PropTypes.object.isRequired,
+  onEdit: PropTypes.func.isRequired,
 };
 
 export default BankDetailsCard;

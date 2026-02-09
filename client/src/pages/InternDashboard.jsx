@@ -1,5 +1,5 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react'; 
 import { useAuth } from '../context/AuthContext';
 import { useIssues } from '../hooks/useIssues';
 import Navbar from '../components/common/Navbar';
@@ -7,28 +7,39 @@ import Button from '../components/common/Button';
 import Loading from '../components/common/Loading';
 import BankDetailsCard from '../components/intern/BankDetailsCard';
 import IssueList from '../components/intern/IssueList';
+import EditProfileModal from '../components/intern/EditProfileModal';
 import { ROUTES } from '../utils/constants';
 
 const InternDashboard = () => {
   const { userData } = useAuth();
   const navigate = useNavigate();
   const { issues, loading } = useIssues({ internId: userData?.uid });
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  if (!userData) {
-    return <Loading fullScreen text="Loading your profile..." />;
-  }
-
-  // Check if bank details are completed
   useEffect(() => {
     if (userData && (!userData.bankName || !userData.accountNumber)) {
       navigate('/register');
     }
   }, [userData, navigate]);
 
+  if (!userData) {
+    return <Loading fullScreen text="Loading your profile..." />;
+  }
+
   // Don't render dashboard if bank details are missing
   if (!userData.bankName || !userData.accountNumber) {
     return null;
   }
+
+  const handleEditProfile = () => {
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    // The AuthContext will automatically refresh userData
+    setIsEditModalOpen(false);
+    window.location.reload(); // Force refresh to get updated data
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -67,7 +78,7 @@ const InternDashboard = () => {
 
           {/* Right Column - Bank Details */}
           <div className="space-y-6">
-            <BankDetailsCard userData={userData} />
+            <BankDetailsCard userData={userData} onEdit={handleEditProfile} />
 
             {/* Quick Stats */}
             <div className="bg-white rounded-lg shadow-card p-6">
@@ -121,6 +132,14 @@ const InternDashboard = () => {
           </div>
         </div>
       </main>
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        userData={userData}
+        onSuccess={handleEditSuccess}
+      />
     </div>
   );
 };
