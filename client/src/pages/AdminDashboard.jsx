@@ -8,6 +8,7 @@ import StatsCard from '../components/admin/StatsCard';
 import FilterPanel from '../components/admin/FilterPanel.jsx';
 import IssuesTable from '../components/admin/IssuesTable.jsx';
 import IssueDetailModal from '../components/admin/IssueDetailModal.jsx';
+import MessagesList from '../components/admin/MessagesList';
 
 const AdminDashboard = () => {
   const { userData } = useAuth();
@@ -16,6 +17,7 @@ const AdminDashboard = () => {
   const { stats, loading: statsLoading } = useAdminStats();
   const [selectedIssue, setSelectedIssue] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('issues'); // 'issues' or 'messages'
 
   const handleViewIssue = (issue) => {
     setSelectedIssue(issue);
@@ -97,44 +99,76 @@ const AdminDashboard = () => {
           ) : null}
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Filters Sidebar */}
-          <div className="lg:col-span-1">
-            <FilterPanel filters={filters} onFilterChange={setFilters} />
-
-            {/* Bank Distribution */}
-            {stats && stats.byBank && Object.keys(stats.byBank).length > 0 && (
-              <div className="mt-6 bg-white rounded-lg shadow-card p-6">
-                <h3 className="text-lg font-semibold text-dark-800 mb-4">By Bank</h3>
-                <div className="space-y-2">
-                  {Object.entries(stats.byBank).map(([bank, count]) => (
-                    <div key={bank} className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">{bank}</span>
-                      <span className="text-sm font-semibold text-dark-800">{count}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Issues Table */}
-          <div className="lg:col-span-3">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-dark-800">
-                Issues {!loading && `(${issues.length})`}
-              </h2>
-            </div>
-            
-            <IssuesTable
-              issues={issues}
-              loading={loading}
-              onViewIssue={handleViewIssue}
-              onResolveIssue={handleResolveIssue}
-            />
-          </div>
+        {/* Tab Navigation */}
+        <div className="mb-6 border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('issues')}
+              className={`${
+                activeTab === 'issues'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+            >
+              Issues
+            </button>
+            <button
+              onClick={() => setActiveTab('messages')}
+              className={`${
+                activeTab === 'messages'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+            >
+              Messages
+            </button>
+          </nav>
         </div>
+
+        {/* Main Content */}
+        {activeTab === 'issues' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Filters Sidebar */}
+            <div className="lg:col-span-1">
+              <FilterPanel filters={filters} onFilterChange={setFilters} />
+
+              {/* Bank Distribution */}
+              {stats && stats.byBank && Object.keys(stats.byBank).length > 0 && (
+                <div className="mt-6 bg-white rounded-lg shadow-card p-6">
+                  <h3 className="text-lg font-semibold text-dark-800 mb-4">By Bank</h3>
+                  <div className="space-y-2">
+                    {Object.entries(stats.byBank).map(([bank, count]) => (
+                      <div key={bank} className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">{bank}</span>
+                        <span className="text-sm font-semibold text-dark-800">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Issues Table */}
+            <div className="lg:col-span-3">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-dark-800">
+                  Issues {!loading && `(${issues.length})`}
+                </h2>
+              </div>
+              
+              <IssuesTable
+                issues={issues}
+                loading={loading}
+                onViewIssue={handleViewIssue}
+                onResolveIssue={handleResolveIssue}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="max-w-4xl mx-auto">
+            <MessagesList adminId={userData?.uid} />
+          </div>
+        )}
       </main>
 
       {/* Issue Detail Modal */}
